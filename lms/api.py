@@ -6,10 +6,17 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import NinjaAPI
-
+from django.core.cache import cache
 from .auth import JWTAuth, create_access_token, create_refresh_token
 from .models import Category, Course, Enrollment, Lesson, Progress, UserProfile
 from .permissions import is_admin, is_instructor, is_student
+from .rate_limit import is_rate_limited
+from .mongo import (
+    log_activity,
+    log_learning_event,
+    get_activity_summary,
+    get_learning_summary,
+)
 from .schemas import (
     CourseCreateSchema,
     CourseOutSchema,
@@ -149,20 +156,61 @@ def update_profile(request, payload: UserUpdateSchema):
     return user_to_dict(user)
 
 
-@api.get("/courses", response=list[CourseOutSchema])
+@api.get("/courses", response={200: list[CourseOutSchema], 429: ErrorSchema})
 def list_courses(request):
+    client_ip = request.META.get("REMOTE_ADDR", "unknown")
+
+    if is_rate_limited(client_ip):
+        return 429, {"message": "Rate limit exceeded. Maximum 60 requests per minute."}
+
+    log_activity(
+        user=request.auth if hasattr(request, "auth") else None,
+        action="course_list_viewed",
+        details={"endpoint": "/api/courses"},
+    )
+        
+    cache_key = "course_list"
+    cached_courses = cache.get(cache_key)
+
+    if cached_courses is not None:
+        return cached_courses
+
     courses = Course.objects.for_listing().all()
-    return [course_to_dict(course) for course in courses]
+    data = [course_to_dict(course) for course in courses]
 
+    cache.set(cache_key, data, timeout=300)
 
-@api.get("/courses/{course_id}", response={200: CourseOutSchema, 404: ErrorSchema})
+    return data
+
+@api.get("/courses/{course_id}", response={200: CourseOutSchema, 404: ErrorSchema, 429: ErrorSchema})
 def course_detail(request, course_id: int):
+    client_ip = request.META.get("REMOTE_ADDR", "unknown")
+
+    if is_rate_limited(client_ip):
+        return 429, {"message": "Rate limit exceeded. Maximum 60 requests per minute."}
+
+    log_activity(
+        user=request.auth if hasattr(request, "auth") else None,
+        action="course_detail_viewed",
+        details={"course_id": course_id},
+    )
+        
+    cache_key = f"course_detail_{course_id}"
+    cached_course = cache.get(cache_key)
+
+    if cached_course is not None:
+        return cached_course
+
     course = get_object_or_404(
         Course.objects.select_related("instructor", "category"),
         id=course_id,
     )
 
-    return course_to_dict(course)
+    data = course_to_dict(course)
+
+    cache.set(cache_key, data, timeout=300)
+
+    return data
 
 
 @api.post("/courses", auth=JWTAuth(), response={200: CourseOutSchema, 403: ErrorSchema, 404: ErrorSchema})
@@ -177,15 +225,26 @@ def create_course(request, payload: CourseCreateSchema):
     if payload.category_id:
         category = get_object_or_404(Category, id=payload.category_id)
 
-    course = Course.objects.create(
+        course = Course.objects.create(
         title=payload.title,
         description=payload.description,
         instructor=user,
         category=category,
     )
 
-    course = Course.objects.select_related("instructor", "category").get(id=course.id)
+    # Redis cache invalidation
+    cache.delete("course_list")
+    cache.delete(f"course_detail_{course.id}")
 
+    course = Course.objects.select_related("instructor", "category").get(id=course.id)
+    log_activity(
+        user=user,
+        action="course_created",
+        details={
+            "course_id": course.id,
+            "title": course.title,
+        },
+    )
     return course_to_dict(course)
 
 
@@ -210,6 +269,17 @@ def update_course(request, course_id: int, payload: CourseUpdateSchema):
         course.category = get_object_or_404(Category, id=payload.category_id)
 
     course.save()
+    log_activity(
+        user=user,
+        action="course_updated",
+        details={
+            "course_id": course.id,
+            "title": course.title,
+        },
+    )
+    # Redis cache invalidation
+    cache.delete("course_list")
+    cache.delete(f"course_detail_{course.id}")
 
     return course_to_dict(course)
 
@@ -222,7 +292,21 @@ def delete_course(request, course_id: int):
         return 403, {"message": "Only admin can delete courses."}
 
     course = get_object_or_404(Course, id=course_id)
+    course_id_for_cache = course.id
+    
+    deleted_course_title = course.title
     course.delete()
+    log_activity(
+        user=user,
+        action="course_deleted",
+        details={
+            "course_id": course_id_for_cache,
+            "title": deleted_course_title,
+        },
+    )
+    # Redis cache invalidation
+    cache.delete("course_list")
+    cache.delete(f"course_detail_{course_id_for_cache}")
 
     return {"message": "Course deleted successfully."}
 
@@ -240,7 +324,21 @@ def enroll_course(request, payload: EnrollmentCreateSchema):
         student=user,
         course=course,
     )
+    log_activity(
+        user=user,
+        action="student_enrolled",
+        details={
+            "enrollment_id": enrollment.id,
+            "course_id": enrollment.course_id,
+            "course_title": enrollment.course.title,
+        },
+    )
 
+    log_learning_event(
+        user=user,
+        course_id=enrollment.course_id,
+        event_type="course_enrolled",
+    )
     enrollment = Enrollment.objects.select_related("student", "course").get(id=enrollment.id)
 
     return enrollment_to_dict(enrollment)
@@ -289,4 +387,57 @@ def mark_lesson_complete(request, enrollment_id: int, payload: ProgressCreateSch
         progress.completed_at = timezone.now()
         progress.save()
 
+        log_activity(
+        user=user,
+        action="lesson_completed",
+        details={
+            "enrollment_id": enrollment.id,
+            "course_id": enrollment.course_id,
+            "lesson_id": lesson.id,
+            "lesson_title": lesson.title,
+        },
+    )
+
+    log_learning_event(
+        user=user,
+        course_id=enrollment.course_id,
+        lesson_id=lesson.id,
+        event_type="lesson_completed",
+    )
     return {"message": "Lesson marked as complete."}
+
+@api.get("/analytics/activity-summary", auth=JWTAuth())
+def activity_summary(request):
+    user = request.auth
+
+    if not is_admin(user):
+        return 403, {"message": "Only admin can view activity summary."}
+
+    result = get_activity_summary()
+
+    return [
+        {
+            "action": item["_id"],
+            "total": item["total"],
+        }
+        for item in result
+    ]
+
+
+@api.get("/analytics/learning-summary", auth=JWTAuth())
+def learning_summary(request):
+    user = request.auth
+
+    if not is_admin(user):
+        return 403, {"message": "Only admin can view learning summary."}
+
+    result = get_learning_summary()
+
+    return [
+        {
+            "course_id": item["_id"]["course_id"],
+            "event_type": item["_id"]["event_type"],
+            "total": item["total"],
+        }
+        for item in result
+    ]

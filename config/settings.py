@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -116,3 +117,36 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Redis Cache Configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL", "redis://redis:6379/1"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "TIMEOUT": 300,
+    }
+}
+
+# Celery Configuration
+CELERY_BROKER_URL = os.getenv(
+    "CELERY_BROKER_URL",
+    "amqp://guest:guest@rabbitmq:5672//"
+)
+CELERY_RESULT_BACKEND = os.getenv(
+    "CELERY_RESULT_BACKEND",
+    "redis://redis:6379/2"
+)
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "UTC"
+
+CELERY_BEAT_SCHEDULE = {
+    "update-course-statistics-every-5-minutes": {
+        "task": "lms.tasks.update_course_statistics",
+        "schedule": 300.0,
+    },
+}
