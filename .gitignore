@@ -2,3 +2,18 @@
 db.sqlite3
 __pycache__/
 *.pyc
+
+# Celery generated files
+celerybeat-schedule
+celerybeat.pid
+
+# Python cache
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS / editor
+.DS_Store
+.vscode/
