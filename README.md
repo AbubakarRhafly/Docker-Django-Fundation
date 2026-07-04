@@ -1,125 +1,139 @@
-# Progress 4: Simple LMS - Advanced Features & Integration
+# FINAL PROJECT REPORT
 
-## Deskripsi Project
+# Simple LMS Extended Backend
 
-Project ini merupakan lanjutan dari Progress 3 pada pengembangan backend Simple LMS. Pada Progress sebelumnya, sistem sudah memiliki REST API, JWT Authentication, Role-Based Access Control, Swagger Documentation, dan endpoint utama untuk course, enrollment, serta lesson progress.
+## 1. Identitas
 
-Pada Progress 4 ini, saya mengembangkan fitur lanjutan dengan mengintegrasikan beberapa teknologi backend tambahan, yaitu Redis, MongoDB, RabbitMQ, Celery, Celery Beat, dan Flower. Integrasi ini bertujuan untuk meningkatkan performa, menyediakan activity logging, mendukung asynchronous task processing, serta memberikan monitoring terhadap task yang berjalan.
-
----
-
-## Tujuan Progress 4
-
-Tujuan dari Progress 4 ini adalah:
-
-1. Mengimplementasikan Redis caching untuk endpoint course.
-2. Mengimplementasikan rate limiting menggunakan Redis.
-3. Mengintegrasikan MongoDB untuk activity logs dan learning analytics.
-4. Membuat aggregation query untuk laporan dari data MongoDB.
-5. Mengimplementasikan Celery untuk asynchronous task processing.
-6. Menggunakan RabbitMQ sebagai message broker.
-7. Menggunakan Celery Beat untuk scheduled task.
-8. Menggunakan Flower untuk monitoring Celery worker dan task.
-9. Memperbarui Docker Compose agar semua service dapat berjalan bersama.
+| Keterangan           | Isi                                                       |
+| -------------------- | --------------------------------------------------------- |
+| Nama                 | Abubakar Rhafly Eka Putera                                |
+| NIM                  | A11.2023.15240                                            |
+| Kelas                | A11.4602                                                  |
+| Mata Kuliah          | Pemrograman Sisi Server                                   |
+| Project              | Simple LMS Extended Backend                               |
+| URL Repository       | https://github.com/AbubakarRhafly/Docker-Django-Fundation |
+| Branch Final Project | final-project-simple-lms                                  |
 
 ---
 
-## Teknologi yang Digunakan
+## 2. Deskripsi Project
 
-Teknologi yang digunakan pada Progress 4:
+Simple LMS Extended Backend adalah project backend Learning Management System sederhana yang dikembangkan menggunakan Django. Project ini merupakan lanjutan dari Progress 1 sampai Progress 4.
 
-* Python
-* Django
-* Django Ninja
-* PostgreSQL
-* Redis
-* MongoDB
-* RabbitMQ
-* Celery
-* Celery Beat
-* Flower
-* Docker
-* Docker Compose
-* Swagger API Documentation
+Pada Progress 1, project difokuskan pada setup Docker, Docker Compose, Django, dan PostgreSQL. Pada Progress 2, project dikembangkan dengan desain database dan implementasi Django ORM untuk model utama LMS. Pada Progress 3, project dikembangkan menjadi REST API menggunakan Django Ninja, JWT Authentication, Role-Based Access Control, dan Swagger Documentation. Pada Progress 4 dan final project ini, sistem dikembangkan lebih lanjut dengan fitur advanced backend seperti Redis caching, MongoDB analytics, Celery asynchronous task, RabbitMQ message broker, Celery Beat scheduled task, dan Flower monitoring.
+
+Tujuan utama dari project ini adalah membuat backend LMS yang lebih realistis, terstruktur, dapat dijalankan melalui Docker Compose, dan dapat diuji melalui Swagger/OpenAPI documentation.
 
 ---
 
-## Docker Services
+## 3. Fitur Dasar yang Sudah Berjalan
 
-Pada Progress 4, `docker-compose.yml` diperbarui agar dapat menjalankan beberapa service berikut:
+Berikut fitur dasar yang sudah tersedia pada project Simple LMS:
+
+| No | Fitur Dasar                                                | Status  |
+| -- | ---------------------------------------------------------- | ------- |
+| 1  | Docker dan Docker Compose                                  | Selesai |
+| 2  | PostgreSQL database                                        | Selesai |
+| 3  | Django project structure                                   | Selesai |
+| 4  | Model User, Category, Course, Lesson, Enrollment, Progress | Selesai |
+| 5  | Django ORM dan migration                                   | Selesai |
+| 6  | REST API menggunakan Django Ninja                          | Selesai |
+| 7  | JWT Authentication                                         | Selesai |
+| 8  | Role-Based Access Control admin, instructor, student       | Selesai |
+| 9  | Course API                                                 | Selesai |
+| 10 | Enrollment API                                             | Selesai |
+| 11 | Lesson progress API                                        | Selesai |
+| 12 | Swagger/OpenAPI documentation                              | Selesai |
+
+---
+
+## 4. Fitur Tambahan yang Dipilih
+
+Pada final project ini, saya memilih beberapa fitur tambahan dari kategori Redis/Performance, MongoDB/Analytics, dan Celery/Async Processing. Total poin fitur tambahan yang dikerjakan melebihi 50 poin, tetapi sesuai ketentuan final project, nilai fitur tambahan maksimal dihitung 50 poin.
+
+| No | Fitur Tambahan                                    | Kategori                           | Poin | Status  |
+| -- | ------------------------------------------------- | ---------------------------------- | ---: | ------- |
+| 1  | Redis caching untuk course list dan course detail | Redis, Caching, Performance        |   12 | Selesai |
+| 2  | Cache invalidation strategy                       | Redis, Caching, Performance        |   12 | Selesai |
+| 3  | API rate limiting berbasis Redis                  | Redis, Caching, Performance        |   12 | Selesai |
+| 4  | Activity logging ke MongoDB                       | MongoDB dan Analytics              |   15 | Selesai |
+| 5  | Learning analytics collection                     | MongoDB dan Analytics              |   15 | Selesai |
+| 6  | Aggregation query MongoDB                         | MongoDB dan Analytics              |   15 | Selesai |
+| 7  | Email notification async menggunakan Celery       | Celery, RabbitMQ, Async Processing |   12 | Selesai |
+| 8  | Generate certificate/report async                 | Celery, RabbitMQ, Async Processing |   18 | Selesai |
+| 9  | Scheduled task menggunakan Celery Beat            | Celery, RabbitMQ, Async Processing |   15 | Selesai |
+| 10 | Flower monitoring                                 | Celery, RabbitMQ, Async Processing |    8 | Selesai |
+
+---
+
+## 5. Penjelasan Implementasi
+
+### 5.1 Docker Compose Multi-Service
+
+Project ini dijalankan menggunakan Docker Compose. Pada final project, Docker Compose menjalankan beberapa service utama:
 
 | Service         | Fungsi                                                            |
 | --------------- | ----------------------------------------------------------------- |
-| `web`           | Menjalankan Django application                                    |
+| `web`           | Menjalankan Django API                                            |
 | `db`            | Menjalankan PostgreSQL database                                   |
 | `redis`         | Digunakan untuk caching, rate limiting, dan Celery result backend |
 | `mongodb`       | Menyimpan activity logs dan learning analytics                    |
 | `rabbitmq`      | Message broker untuk Celery                                       |
-| `celery-worker` | Menjalankan asynchronous tasks                                    |
-| `celery-beat`   | Menjalankan scheduled tasks                                       |
-| `flower`        | Monitoring Celery worker dan tasks                                |
+| `celery-worker` | Menjalankan asynchronous task                                     |
+| `celery-beat`   | Menjalankan scheduled task                                        |
+| `flower`        | Monitoring Celery worker dan task                                 |
 
-Untuk menjalankan semua service:
+Bukti semua service berjalan dapat dilihat pada screenshot berikut:
 
-```bash
-docker compose up --build
-```
-
-Untuk melihat container yang sedang berjalan:
-
-```bash
-docker ps
-```
-
-### Screenshot Docker Services dan Redis
-
-![Docker Compose Services and Redis](lms/images/progress4/docker-ps-redis-keys-ttl.png)
+![Docker Services and Redis Cache](lms/images/progress4/docker-ps-redis-keys-ttl.png)
 
 ---
 
-## Redis Integration
+### 5.2 Redis Caching
 
-Redis digunakan untuk meningkatkan performa API dengan menyimpan data sementara dalam cache. Pada Progress 4, Redis diterapkan pada endpoint course.
+Redis digunakan untuk menyimpan cache pada endpoint course agar response lebih cepat ketika request yang sama dilakukan berulang.
 
-### Course List Caching
-
-Endpoint:
+Endpoint yang menggunakan Redis cache:
 
 ```txt
 GET /api/courses
-```
-
-Endpoint ini menyimpan hasil daftar course ke Redis dengan key:
-
-```txt
-course_list
-```
-
-Jika data masih tersedia di cache, API akan mengambil data dari Redis tanpa menjalankan query database ulang.
-
-### Course Detail Caching
-
-Endpoint:
-
-```txt
 GET /api/courses/{course_id}
 ```
 
-Endpoint ini menyimpan detail course ke Redis dengan key:
+Key Redis yang digunakan:
 
 ```txt
+course_list
 course_detail_{course_id}
 ```
 
-Contoh:
+Contoh key:
 
 ```txt
-course_detail_1
+:1:course_list
+:1:course_detail_1
 ```
 
-### Cache Invalidation Strategy
+Cache memiliki TTL sehingga data tidak disimpan selamanya. Pengujian dilakukan melalui Redis CLI dengan perintah:
 
-Cache dihapus saat data course berubah. Invalidation dilakukan pada beberapa kondisi:
+```bash
+docker exec -it simple_lms_redis redis-cli
+SELECT 1
+KEYS *
+TTL ":1:course_list"
+```
+
+Bukti Redis cache dan TTL aktif:
+
+![Redis Cache and TTL](lms/images/progress4/docker-ps-redis-keys-ttl.png)
+
+---
+
+### 5.3 Cache Invalidation Strategy
+
+Cache invalidation diterapkan agar data cache tetap konsisten ketika data course berubah.
+
+Strategi invalidation:
 
 | Aksi          | Cache yang Dihapus                            |
 | ------------- | --------------------------------------------- |
@@ -127,49 +141,21 @@ Cache dihapus saat data course berubah. Invalidation dilakukan pada beberapa kon
 | Update course | `course_list` dan `course_detail_{course_id}` |
 | Delete course | `course_list` dan `course_detail_{course_id}` |
 
-Dengan strategi ini, data yang ditampilkan oleh API tetap konsisten setelah terjadi perubahan data.
-
-### Redis CLI Testing
-
-Redis diuji menggunakan command:
-
-```bash
-docker exec -it simple_lms_redis redis-cli
-```
-
-Kemudian memilih Redis database 1:
-
-```redis
-SELECT 1
-```
-
-Melihat key Redis:
-
-```redis
-KEYS *
-```
-
-Melihat TTL cache:
-
-```redis
-TTL ":1:course_list"
-```
-
-Hasil pengujian menunjukkan bahwa key cache berhasil dibuat dan memiliki TTL aktif.
+Dengan strategi ini, API tidak menampilkan data lama setelah ada perubahan course.
 
 ---
 
-## Rate Limiting
+### 5.4 Rate Limiting Berbasis Redis
 
-Rate limiting diterapkan menggunakan Redis untuk membatasi jumlah request ke endpoint course.
+Rate limiting diterapkan untuk membatasi jumlah request ke endpoint course.
 
-Batas yang diterapkan:
+Batas request:
 
 ```txt
 60 requests per minute
 ```
 
-Jika jumlah request melebihi batas, API akan mengembalikan response:
+Jika request melebihi batas, API mengembalikan response:
 
 ```json
 {
@@ -183,9 +169,7 @@ Pengujian dilakukan menggunakan PowerShell:
 for ($i=1; $i -le 65; $i++) { curl.exe http://localhost:8000/api/courses }
 ```
 
-Setelah request melewati batas, sistem berhasil memberikan response rate limit.
-
-### Screenshot Rate Limiting
+Bukti pengujian rate limiting:
 
 ![Rate Limiting Test 1](lms/images/progress4/rate-limiting1.png)
 
@@ -193,27 +177,17 @@ Setelah request melewati batas, sistem berhasil memberikan response rate limit.
 
 ---
 
-## MongoDB Integration
+### 5.5 MongoDB Activity Logs
 
-MongoDB digunakan untuk menyimpan data yang berbentuk log dan analytics. Data ini tidak disimpan di PostgreSQL karena sifatnya lebih fleksibel dan cocok untuk document-based storage.
+MongoDB digunakan untuk menyimpan activity logs dalam bentuk document. Activity logs mencatat aktivitas penting yang dilakukan oleh user maupun anonymous user.
 
-MongoDB digunakan untuk dua collection utama:
+Collection yang digunakan:
 
-| Collection           | Fungsi                                   |
-| -------------------- | ---------------------------------------- |
-| `activity_logs`      | Menyimpan aktivitas user dan sistem      |
-| `learning_analytics` | Menyimpan aktivitas pembelajaran student |
+```txt
+activity_logs
+```
 
-### Activity Log Collection
-
-Collection `activity_logs` menyimpan beberapa aktivitas seperti:
-
-* Melihat daftar course
-* Melihat detail course
-* Student enroll ke course
-* Student menyelesaikan lesson
-
-Contoh action yang tersimpan:
+Contoh aktivitas yang dicatat:
 
 ```txt
 course_list_viewed
@@ -222,170 +196,90 @@ student_enrolled
 lesson_completed
 ```
 
-### Learning Analytics Collection
+Pengujian dilakukan menggunakan MongoDB shell:
 
-Collection `learning_analytics` menyimpan aktivitas pembelajaran student seperti:
+```bash
+docker exec -it simple_lms_mongodb mongosh
+use simple_lms_logs
+show collections
+db.activity_logs.find().pretty()
+```
+
+Bukti activity logs tersimpan di MongoDB:
+
+![MongoDB Activity Logs](lms/images/progress4/mongodb-integration1.png)
+
+---
+
+### 5.6 MongoDB Learning Analytics
+
+Learning analytics digunakan untuk mencatat aktivitas pembelajaran student.
+
+Collection yang digunakan:
+
+```txt
+learning_analytics
+```
+
+Contoh event yang dicatat:
 
 ```txt
 course_enrolled
 lesson_completed
 ```
 
-Data ini dapat digunakan untuk melihat aktivitas pembelajaran student dalam course tertentu.
+Data ini dapat digunakan untuk melihat aktivitas belajar student berdasarkan course dan lesson.
 
-### MongoDB Shell Testing
-
-Masuk ke MongoDB shell:
-
-```bash
-docker exec -it simple_lms_mongodb mongosh
-```
-
-Pilih database:
-
-```javascript
-use simple_lms_logs
-```
-
-Melihat collections:
-
-```javascript
-show collections
-```
-
-Melihat activity logs:
-
-```javascript
-db.activity_logs.find().pretty()
-```
-
-Melihat learning analytics:
+Pengujian dilakukan menggunakan:
 
 ```javascript
 db.learning_analytics.find().pretty()
 ```
 
-### Screenshot MongoDB Activity Logs
-
-![MongoDB Activity Logs](lms/images/progress4/mongodb-integration1.png)
-
-### Screenshot MongoDB Learning Analytics
+Bukti learning analytics tersimpan di MongoDB:
 
 ![MongoDB Learning Analytics](lms/images/progress4/mongodb-integration2.png)
 
 ---
 
-## MongoDB Aggregation Queries
+### 5.7 MongoDB Aggregation Query
 
-Aggregation query dibuat untuk menghasilkan laporan dari data MongoDB.
+Aggregation query dibuat untuk menghasilkan laporan ringkas dari data MongoDB.
 
-Endpoint yang dibuat:
-
-| Method | Endpoint                          | Fungsi                                                                  |
-| ------ | --------------------------------- | ----------------------------------------------------------------------- |
-| GET    | `/api/analytics/activity-summary` | Menampilkan jumlah aktivitas berdasarkan action                         |
-| GET    | `/api/analytics/learning-summary` | Menampilkan jumlah aktivitas learning berdasarkan course dan event type |
-
-Endpoint ini hanya dapat diakses oleh user dengan role admin.
-
-### Activity Summary
-
-Endpoint:
+Endpoint aggregation:
 
 ```txt
 GET /api/analytics/activity-summary
-```
-
-Contoh hasil response:
-
-```json
-[
-  {
-    "action": "course_list_viewed",
-    "total": 1
-  },
-  {
-    "action": "course_detail_viewed",
-    "total": 1
-  },
-  {
-    "action": "lesson_completed",
-    "total": 1
-  },
-  {
-    "action": "student_enrolled",
-    "total": 1
-  }
-]
-```
-
-### Learning Summary
-
-Endpoint:
-
-```txt
 GET /api/analytics/learning-summary
 ```
 
-Contoh hasil response:
+`activity-summary` menampilkan total aktivitas berdasarkan action.
+`learning-summary` menampilkan total aktivitas pembelajaran berdasarkan course dan event type.
 
-```json
-[
-  {
-    "course_id": 1,
-    "event_type": "lesson_completed",
-    "total": 1
-  },
-  {
-    "course_id": 1,
-    "event_type": "course_enrolled",
-    "total": 1
-  }
-]
-```
+Endpoint ini membutuhkan autentikasi JWT dan hanya dapat diakses oleh admin.
 
-### Screenshot Activity Summary
+Bukti activity summary berjalan:
 
 ![Activity Summary](lms/images/progress4/test-activity-summary.png)
 
-### Screenshot Learning Summary
+Bukti learning summary berjalan:
 
 ![Learning Summary](lms/images/progress4/test-learning-summary.png)
 
 ---
 
-## Celery Integration
+### 5.8 Celery Async Tasks
 
-Celery digunakan untuk menjalankan task secara asynchronous. Pada Progress 4 ini, RabbitMQ digunakan sebagai message broker, sedangkan Redis digunakan sebagai result backend.
+Celery digunakan untuk menjalankan task secara asynchronous agar proses berat tidak langsung membebani request API.
 
-Celery configuration ditambahkan pada project Django melalui file:
+Empat task utama yang dibuat:
 
-```txt
-config/celery.py
-```
-
-Selain itu, `config/__init__.py` juga diperbarui agar Celery app dapat terbaca saat Django berjalan.
-
----
-
-## Celery Tasks
-
-Empat task utama yang dibuat pada Progress 4 adalah:
-
-| Task                       | Fungsi                                                 |
-| -------------------------- | ------------------------------------------------------ |
-| `send_enrollment_email`    | Mensimulasikan pengiriman email setelah student enroll |
-| `generate_certificate`     | Membuat certificate number setelah course selesai      |
-| `update_course_statistics` | Mengupdate statistik course                            |
-| `export_course_report`     | Membuat report course secara asynchronous              |
-
-Task disimpan pada file:
-
-```txt
-lms/tasks.py
-```
-
-### Testing Celery Tasks
+| Task                       | Fungsi                                             |
+| -------------------------- | -------------------------------------------------- |
+| `send_enrollment_email`    | Simulasi pengiriman email saat student enroll      |
+| `generate_certificate`     | Generate certificate number setelah course selesai |
+| `update_course_statistics` | Mengupdate statistik course                        |
+| `export_course_report`     | Generate report course secara async                |
 
 Task diuji melalui Django shell:
 
@@ -393,51 +287,71 @@ Task diuji melalui Django shell:
 docker exec -it simple_lms_web python manage.py shell
 ```
 
-Import task:
+Kemudian menjalankan:
 
 ```python
 from lms.tasks import send_enrollment_email, generate_certificate, update_course_statistics, export_course_report
-```
 
-Menjalankan task:
-
-```python
 send_enrollment_email.delay(1)
 generate_certificate.delay(1)
 update_course_statistics.delay()
 export_course_report.delay()
 ```
 
-Hasil pengujian menunjukkan bahwa semua task berhasil berjalan dengan status `SUCCESS`.
+Hasil task dapat dilihat melalui Flower dashboard. Semua task berhasil berjalan dengan status `SUCCESS`.
 
-### Screenshot Celery Tasks
+Bukti Celery tasks berhasil:
 
-![Celery Tasks](lms/images/progress4/celery-tasks.png)
+![Celery Tasks Success](lms/images/progress4/celery-tasks.png)
 
 ---
 
-## Celery Beat
+### 5.9 RabbitMQ Message Broker
 
-Celery Beat digunakan untuk menjalankan scheduled task. Pada project ini, task `update_course_statistics` dijalankan secara otomatis setiap 5 menit.
+RabbitMQ digunakan sebagai message broker untuk Celery. Django mengirim task ke RabbitMQ, kemudian Celery worker mengambil task tersebut untuk diproses.
 
-Konfigurasi schedule:
+RabbitMQ dashboard dapat diakses melalui:
 
-```python
-CELERY_BEAT_SCHEDULE = {
-    "update-course-statistics-every-5-minutes": {
-        "task": "lms.tasks.update_course_statistics",
-        "schedule": 300.0,
-    },
-}
+```txt
+http://localhost:15672
 ```
 
-Dengan konfigurasi ini, sistem dapat memperbarui statistik course secara berkala tanpa perlu request manual dari user.
+Login:
+
+```txt
+username: guest
+password: guest
+```
+
+Bukti RabbitMQ dashboard berjalan:
+
+![RabbitMQ Dashboard](lms/images/progress4/dashboard-rabbitmq.png)
 
 ---
 
-## Flower Monitoring
+### 5.10 Celery Beat Scheduled Task
 
-Flower digunakan untuk memonitor Celery worker dan task yang berjalan.
+Celery Beat digunakan untuk menjalankan scheduled task secara otomatis.
+
+Task yang dijalankan berkala:
+
+```txt
+update_course_statistics
+```
+
+Schedule:
+
+```txt
+Setiap 5 menit
+```
+
+Task ini digunakan untuk memperbarui statistik course secara otomatis tanpa request manual.
+
+---
+
+### 5.11 Flower Monitoring
+
+Flower digunakan untuk memonitor Celery worker dan task.
 
 Flower dapat diakses melalui:
 
@@ -445,135 +359,303 @@ Flower dapat diakses melalui:
 http://localhost:5555
 ```
 
-Pada dashboard Flower, dapat dilihat:
+Pada Flower, dapat dilihat:
 
 * Worker status
-* Total processed task
-* Failed task
-* Successful task
+* Task yang diproses
+* Status task success/failed
 * Runtime task
-* Task result
+* Result task
 
-### Screenshot Flower Dashboard
+Bukti Flower dashboard berjalan:
 
 ![Flower Dashboard](lms/images/progress4/flower-dashboard.png)
 
 ---
 
-## RabbitMQ Message Broker
+## 6. Cara Menjalankan Project
 
-RabbitMQ digunakan sebagai message broker untuk Celery. RabbitMQ menerima task dari Django, lalu mengirimkannya ke Celery worker untuk diproses.
+### 6.1 Clone Repository
 
-RabbitMQ Management dapat diakses melalui:
+```bash
+git clone https://github.com/AbubakarRhafly/Docker-Django-Fundation.git
+cd Docker-Django-Fundation
+```
+
+### 6.2 Checkout Branch Final Project
+
+```bash
+git checkout final-project-simple-lms
+```
+
+### 6.3 Buat File `.env`
+
+Copy file `.env.example` menjadi `.env`.
+
+```bash
+cp .env.example .env
+```
+
+Untuk Windows PowerShell:
+
+```powershell
+copy .env.example .env
+```
+
+### 6.4 Jalankan Docker Compose
+
+```bash
+docker compose up --build
+```
+
+### 6.5 Jalankan Migration
+
+Jika migration belum berjalan otomatis, jalankan:
+
+```bash
+docker exec -it simple_lms_web python manage.py migrate
+```
+
+### 6.6 Membuka API Documentation
+
+Swagger/OpenAPI dapat diakses melalui:
+
+```txt
+http://localhost:8000/api/docs
+```
+
+### 6.7 Membuka Flower
+
+```txt
+http://localhost:5555
+```
+
+### 6.8 Membuka RabbitMQ Dashboard
 
 ```txt
 http://localhost:15672
 ```
 
-Login default:
+Login:
 
 ```txt
-username: guest
-password: guest
+guest / guest
 ```
 
-### Screenshot RabbitMQ Dashboard
+---
+
+## 7. Akun Demo
+
+Akun demo yang digunakan untuk testing:
+
+| Role       | Username      | Password          |
+| ---------- | ------------- | ----------------- |
+| Admin      | `admin123`    | `Campus#2026AI`   |
+| Instructor | `instructor1` | `Campus#2026AI`   |
+| Instructor | `instructor2` | `Training@2026Lab`|
+| Student    | `student1`    | `Classroom#2026`  |
+| Student    | `student2`    | `Practice@2026AI` |
+
+---
+
+## 8. Endpoint Penting
+
+### Authentication
+
+| Method | Endpoint             | Deskripsi                       |
+| ------ | -------------------- | ------------------------------- |
+| POST   | `/api/auth/register` | Register user                   |
+| POST   | `/api/auth/login`    | Login dan mendapatkan JWT token |
+| POST   | `/api/auth/refresh`  | Refresh access token            |
+| GET    | `/api/auth/me`       | Melihat user yang sedang login  |
+| PUT    | `/api/auth/me`       | Update profile user             |
+
+### Course
+
+| Method | Endpoint                   | Deskripsi                           |
+| ------ | -------------------------- | ----------------------------------- |
+| GET    | `/api/courses`             | Menampilkan list course             |
+| GET    | `/api/courses/{course_id}` | Menampilkan detail course           |
+| POST   | `/api/courses`             | Instructor membuat course           |
+| PATCH  | `/api/courses/{course_id}` | Instructor mengubah course miliknya |
+| DELETE | `/api/courses/{course_id}` | Admin menghapus course              |
+
+### Enrollment dan Progress
+
+| Method | Endpoint                                    | Deskripsi                           |
+| ------ | ------------------------------------------- | ----------------------------------- |
+| POST   | `/api/enrollments`                          | Student enroll ke course            |
+| GET    | `/api/enrollments/my-courses`               | Student melihat course yang diikuti |
+| POST   | `/api/enrollments/{enrollment_id}/progress` | Student menandai lesson selesai     |
+
+### Analytics
+
+| Method | Endpoint                          | Deskripsi                                |
+| ------ | --------------------------------- | ---------------------------------------- |
+| GET    | `/api/analytics/activity-summary` | Admin melihat summary activity logs      |
+| GET    | `/api/analytics/learning-summary` | Admin melihat summary learning analytics |
+
+---
+
+## 9. Screenshot / Bukti Pengujian
+
+Semua screenshot bukti pengujian disimpan di folder:
+
+```txt
+lms/images/progress4/
+```
+
+### 9.1 Docker Services dan Redis Cache
+
+![Docker Services and Redis Cache](lms/images/progress4/docker-ps-redis-keys-ttl.png)
+
+### 9.2 Rate Limiting
+
+![Rate Limiting 1](lms/images/progress4/rate-limiting1.png)
+
+![Rate Limiting 2](lms/images/progress4/rate-limiting2.png)
+
+### 9.3 MongoDB Activity Logs
+
+![MongoDB Activity Logs](lms/images/progress4/mongodb-integration1.png)
+
+### 9.4 MongoDB Learning Analytics
+
+![MongoDB Learning Analytics](lms/images/progress4/mongodb-integration2.png)
+
+### 9.5 MongoDB Aggregation Activity Summary
+
+![Activity Summary](lms/images/progress4/test-activity-summary.png)
+
+### 9.6 MongoDB Aggregation Learning Summary
+
+![Learning Summary](lms/images/progress4/test-learning-summary.png)
+
+### 9.7 Flower Dashboard
+
+![Flower Dashboard](lms/images/progress4/flower-dashboard.png)
+
+### 9.8 Celery Tasks Success
+
+![Celery Tasks Success](lms/images/progress4/celery-tasks.png)
+
+### 9.9 RabbitMQ Dashboard
 
 ![RabbitMQ Dashboard](lms/images/progress4/dashboard-rabbitmq.png)
 
+### 9.10 Swagger API Documentation
+
+![Swagger API Documentation](lms/images/progress4/swagger-api-docs.png)
+
+### 9.11 JWT Login Success
+
+Berikut adalah hasil login menggunakan endpoint `POST /api/auth/login`. Sistem berhasil mengembalikan token JWT berupa `access` dan `refresh`.
+
+![JWT Login Success](lms/images/progress4/jwt-login-success.png)
+
+### 9.12 RBAC Student Forbidden
+
+Pengujian ini dilakukan dengan login sebagai `student1`, kemudian mencoba mengakses endpoint `DELETE /api/courses/{course_id}`. Endpoint tersebut hanya boleh diakses oleh admin. Hasil pengujian menunjukkan response `403 Forbidden`, sehingga role-based access control berhasil berjalan.
+
+![RBAC Student Forbidden](lms/images/progress4/rbac-student-forbidden.png)
+
 ---
 
-## Architecture Diagram
+## 10. Pengujian yang Dilakukan
 
-Berikut adalah diagram arsitektur Progress 4:
+| No |   Pengujian                |                     Cara Uji                   |     Hasil     |
+|----|----------------------------|------------------------------------------------|---------------|
+| 1  | Docker Compose             | `docker compose up --build` dan `docker ps`    | Berhasil      |
+| 2  | Swagger API                | Membuka `/api/docs`                            | Berhasil      |
+| 3  | JWT Login                  | `POST /api/auth/login`                         | Berhasil      |
+| 4  | RBAC Student Forbidden     | Student mencoba `DELETE /api/courses/1`        | 403 Forbidden |
+| 5  | Course List API            | `GET /api/courses`                             | 200 OK        |
+| 6  | Course Detail API          | `GET /api/courses/1`                           | 200 OK        |
+| 7  | Redis Cache                | `SELECT 1`, `KEYS *`, `TTL`                    | Berhasil      |
+| 8  | Rate Limiting              | 65 request ke `/api/courses`                   | Limit berjalan|
+| 9  | MongoDB Activity Logs      | `db.activity_logs.find().pretty()`             | Berhasil      |
+| 10 | MongoDB Learning Analytics | `db.learning_analytics.find().pretty()`        | Berhasil      |
+| 11 | Activity Summary           | `GET /api/analytics/activity-summary`          | 200 OK        |
+| 12 | Learning Summary           | `GET /api/analytics/learning-summary`          | 200 OK        |
+| 13 | Celery Tasks               | Menjalankan 4 task dari Django shell           | SUCCESS       |
+| 14 | Flower Monitoring          | Membuka `localhost:5555`                       | Berhasil      |
+| 15 | RabbitMQ Dashboard         | Membuka `localhost:15672`                      | Berhasil      |
 
-```mermaid
-flowchart TD
-    A[Client / Swagger / Postman] --> B[Django API]
-    B --> C[PostgreSQL Database]
-    B --> D[Redis Cache]
-    B --> E[MongoDB Logs and Analytics]
-    B --> F[RabbitMQ Broker]
-    F --> G[Celery Worker]
-    H[Celery Beat Scheduler] --> F
-    G --> I[Async Tasks]
-    G --> J[Redis Result Backend]
-    K[Flower Dashboard] --> G
-    K --> F
+---
+
+## 11. Kendala dan Solusi
+
+### 11.1 Port 8000 Sudah Digunakan
+
+Kendala:
+
+```txt
+Bind for 0.0.0.0:8000 failed: port is already allocated
 ```
 
----
+Solusi:
 
-## Task Flow Documentation
+Saya mengecek container yang sedang berjalan menggunakan:
 
-### Enrollment Task Flow
-
-```mermaid
-sequenceDiagram
-    participant Student
-    participant API as Django API
-    participant DB as PostgreSQL
-    participant MQ as RabbitMQ
-    participant Worker as Celery Worker
-    participant Mongo as MongoDB
-
-    Student->>API: POST /api/enrollments
-    API->>DB: Create or get enrollment
-    API->>Mongo: Save student_enrolled activity log
-    API->>Mongo: Save course_enrolled learning analytics
-    API->>MQ: Send send_enrollment_email task
-    MQ->>Worker: Deliver task
-    Worker->>Worker: Process email task
-    API-->>Student: Enrollment response
+```bash
+docker ps
 ```
 
-### Lesson Complete Task Flow
+Kemudian menghentikan container lain yang menggunakan port 8000, lalu menjalankan ulang Docker Compose.
 
-```mermaid
-sequenceDiagram
-    participant Student
-    participant API as Django API
-    participant DB as PostgreSQL
-    participant Mongo as MongoDB
-    participant MQ as RabbitMQ
-    participant Worker as Celery Worker
+---
 
-    Student->>API: POST /api/enrollments/{id}/progress
-    API->>DB: Mark lesson complete
-    API->>Mongo: Save lesson_completed activity log
-    API->>Mongo: Save lesson_completed learning analytics
-    API->>MQ: Send generate_certificate task
-    MQ->>Worker: Deliver task
-    Worker->>Worker: Generate certificate
-    API-->>Student: Lesson marked as complete
+### 11.2 Redis Key Tidak Muncul Saat Dicek
+
+Kendala:
+
+Saat menjalankan `KEYS *` di Redis, key cache tidak muncul.
+
+Solusi:
+
+Redis cache Django menggunakan database 1, sedangkan Redis CLI default masuk ke database 0. Solusinya adalah menjalankan:
+
+```redis
+SELECT 1
+KEYS *
 ```
 
----
-
-## Hasil Pengujian
-
-| Pengujian                                        | Hasil    |
-| ------------------------------------------------ | -------- |
-| Docker Compose menjalankan semua services        | Berhasil |
-| Redis course list caching                        | Berhasil |
-| Redis course detail caching                      | Berhasil |
-| Cache TTL aktif                                  | Berhasil |
-| Cache invalidation saat course berubah           | Berhasil |
-| Rate limiting 60 requests/minute                 | Berhasil |
-| MongoDB activity logs                            | Berhasil |
-| MongoDB learning analytics                       | Berhasil |
-| MongoDB aggregation activity summary             | Berhasil |
-| MongoDB aggregation learning summary             | Berhasil |
-| Celery worker berjalan                           | Berhasil |
-| Celery Beat scheduled task berjalan              | Berhasil |
-| Empat Celery task berjalan dengan status success | Berhasil |
-| Flower monitoring berjalan                       | Berhasil |
-| RabbitMQ management berjalan                     | Berhasil |
+Setelah itu key seperti `:1:course_list` dan `:1:course_detail_1` berhasil muncul.
 
 ---
 
-## Kesimpulan
+### 11.3 Endpoint Protected Menghasilkan 401 Unauthorized
 
-Pada Progress 4 ini, saya berhasil mengintegrasikan beberapa fitur lanjutan pada backend Simple LMS. Redis digunakan untuk caching dan rate limiting, MongoDB digunakan untuk activity logs dan learning analytics, RabbitMQ digunakan sebagai message broker, Celery digunakan untuk asynchronous task processing, Celery Beat digunakan untuk scheduled task, dan Flower digunakan untuk monitoring.
+Kendala:
 
-Dengan implementasi ini, sistem Simple LMS menjadi lebih lengkap dan lebih siap untuk digunakan sebagai backend LMS yang memiliki performa lebih baik, logging yang fleksibel, asynchronous processing, serta monitoring task.
+Endpoint enrollment dan analytics menghasilkan 401 Unauthorized.
+
+Solusi:
+
+Endpoint tersebut membutuhkan JWT token. Saya login melalui endpoint `/api/auth/login`, mengambil access token, lalu memasukkannya ke Swagger Authorize dengan format Bearer token.
+
+---
+
+### 11.4 Flower Connection Refused
+
+Kendala:
+
+Flower sempat gagal connect ke RabbitMQ karena RabbitMQ belum siap.
+
+Solusi:
+
+Saya menjalankan ulang service Flower setelah RabbitMQ aktif:
+
+```bash
+docker compose up -d flower
+```
+
+Setelah itu Flower berhasil berjalan di port 5555.
+
+---
+
+## 12. Kesimpulan
+
+Final project Simple LMS Extended Backend berhasil dikembangkan dari project LMS sebelumnya menjadi backend yang lebih lengkap dan realistis. Project ini sudah mendukung REST API, JWT authentication, RBAC, Docker Compose, PostgreSQL, Redis caching, rate limiting, MongoDB activity logs, learning analytics, Celery asynchronous task, RabbitMQ message broker, Celery Beat scheduled task, dan Flower monitoring.
+
+Melalui project ini, saya memahami cara mengintegrasikan beberapa teknologi backend dalam satu sistem menggunakan Docker Compose. Saya juga mempelajari pentingnya caching, background task, activity logging, analytics, dokumentasi API, serta monitoring service agar backend lebih siap digunakan dalam skenario nyata.
