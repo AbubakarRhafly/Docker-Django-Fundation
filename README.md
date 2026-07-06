@@ -450,7 +450,7 @@ Akun demo yang digunakan untuk testing:
 
 | Role       | Username      | Password          |
 | ---------- | ------------- | ----------------- |
-| Admin      | `admin123`    | `Campus#2026AI`   |
+| Admin      | `admin123`    | `polke001`        |
 | Instructor | `instructor1` | `Campus#2026AI`   |
 | Instructor | `instructor2` | `Training@2026Lab`|
 | Student    | `student1`    | `Classroom#2026`  |
